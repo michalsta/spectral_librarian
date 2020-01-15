@@ -24,8 +24,24 @@ clusters = [[MZML[i-1] for i in I] for I in clusters_idx]
 # plot_spectrum(spec[0], spec[1])
 
 ci = SpectralModel.fromMZPList(clusters[0])
+ci.average_cluster_cv()
+ci.renormalize_spectra()
+ci.average_cluster_cv()
+
+
 cic = ci.copy()
 cic.remove_noise_clusters(.8)
+cic.average_cluster_cv()
+cic.renormalize_spectra()
+cic.average_cluster_cv()
+
+cic.average_()
+
+ci.avarage_cluster_variance()
+cic.avarage_cluster_variance()
+
+
+
 
 ci.plot(show=False)
 cic.plot(span_kwds={'alpha':.2, 'color':'red'})

@@ -26,8 +26,6 @@ class SpectralModel:
             masses = spectrum[0]
             probs = spectrum[1]
             spectrum = list(zip(masses, probs))
-            norm_factor = math.fsum(x[1] for x in spectrum)
-            spectrum = [(x[0], x[1]/norm_factor) for x in spectrum]
             spectra.append(spectrum)
 
         self.spectra = spectra
@@ -100,6 +98,21 @@ class SpectralModel:
 
     def cluster_variances(self):
         return [math.fsum((x[1] - mean)*(x[1]-mean) for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+
+    def cluster_stdevs(self):
+        return [math.sqrt(v) for v in self.cluster_variances()]
+
+    def cluster_cvs(self):
+        return [std/mean for std, mean in zip(self.cluster_stdevs(), 
+                                              self.cluster_means())]
+
+    def average_cluster_cv(self):
+        cluster_cvs = self.cluster_cvs()
+        return math.fsum(cluster_cvs)/len(cluster_cvs)
+
+    def avarage_cluster_variance(self):
+        variances = self.cluster_variances()
+        return math.fsum(variances)/len(variances)
 
     def plot(self,
              vlines_kwds={},
