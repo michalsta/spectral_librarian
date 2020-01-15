@@ -35,5 +35,5 @@ def get_spectra_array(path2mzml):
     Return:
         np.array: an array with spectra.
     """
-    return np.array([(s.mz, s.i)
+    return np.array([(list(s.mz), list(s.i))
                      for s in pymzml.run.Reader(str(path2mzml))])
