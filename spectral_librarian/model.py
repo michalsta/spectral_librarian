@@ -95,6 +95,12 @@ class SpectralModel:
     def supports(self):
         return [len(set(x[2] for x in spectrum)) for spectrum in self.get_clusters()]
 
+    def cluster_means(self):
+        return [math.fsum(x[1] for x in cluster)/len(cluster) for cluster in self.get_clusters()]
+
+    def cluster_variances(self):
+        return [math.fsum((x[1] - mean)*(x[1]-mean) for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+
     def plot(self,
              vlines_kwds={},
              span_kwds={'alpha':.1, 'color':'orange'},
