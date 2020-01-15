@@ -11,12 +11,14 @@ except NameError:
 
 class SpectralModel:
     def __init__(self):
-        pass
-    @staticmethod
+        self._peak_clusters = None
 
+    @staticmethod
     def fromMZPList(L, cluster_gap = 0.01):
         self = SpectralModel()
         self.cluster_gap = cluster_gap
+
+        self.size = len(L)
 
         spectra = []
         all_confs = []
@@ -27,9 +29,23 @@ class SpectralModel:
             norm_factor = math.fsum(x[1] for x in spectrum)
             spectrum = [(x[0], x[1]/norm_factor) for x in spectrum]
             spectra.append(spectrum)
-            all_confs.extend((x[0], x[1], idx) for x in spectrum)
 
         self.spectra = spectra
+
+        self.remove_noise_clusters()
+
+        return self
+
+    def get_clusters(self):
+        if self._peak_clusters is None:
+            self.compute_clusters()
+        return self._peak_clusters
+
+    def compute_clusters(self):
+        all_confs = []
+
+        for idx, spectrum in enumerate(self.spectra):
+            all_confs.extend((x[0], x[1], idx) for x in spectrum)
 
         all_confs.sort(key = lambda x: x[0])
 
@@ -38,11 +54,10 @@ class SpectralModel:
         clust_start = 0
         prev_conf = all_confs[0]
 
-
         ii = 1
         while ii < len(all_confs):
             curr_conf = all_confs[ii]
-            if curr_conf[0] - cluster_gap < prev_conf[0]:
+            if curr_conf[0] - self.cluster_gap < prev_conf[0]:
                 pass
             else:
                 peak_clusters.append(all_confs[clust_start:ii])
@@ -50,9 +65,36 @@ class SpectralModel:
             prev_conf = curr_conf
             ii += 1
 
-        self.peak_clusters = peak_clusters
+        self._peak_clusters = peak_clusters
 
-        return self
+    def remove_noise_clusters(self, threshold = 0.2):
+        out_clusters = []
+
+        threshold = threshold * self.size
+
+        for cluster in self.get_clusters():
+            support = set(x[2] for x in cluster)
+            if len(support) > threshold:
+                out_clusters.append(cluster)
+
+        self.spectra = [[] for _ in range(self.size)]
+
+        for cluster in out_clusters:
+            for mz, prob, sp_id in cluster:
+                self.spectra[sp_id].append((mz, prob))
+
+        self.renormalize_spectra()
+
+    def renormalize_spectra(self):
+        new_spectra = []
+
+        for spectrum in self.spectra:
+            correction = math.fsum(x[1] for x in spectrum)
+            n_spectrum = [(x[0], x[1]/correction) for x in spectrum]
+            new_spectra.append(n_spectrum)
+
+        self.spectra = new_spectra
+        self._peak_clusters = None
 
 
     def plot(self,
@@ -82,4 +124,7 @@ if __name__ == '__main__':
     #example = [0.0, 0.0001, 0.0002, 0.0005, 1.0, 1.1, 1.11, 1.111, 1.11111, 1.111111111, 1.112, 1.12, 1.2, 2.0]
     #example = [[(x, 1.0) for x in example]]
     example = S
-    print(SpectralModel.fromMZPList(example).peak_clusters)
+    SM = SpectralModel.fromMZPList(example)
+    SM.remove_noise_clusters(0.8)
+    from pprint import pprint
+    pprint(SM.get_clusters())
