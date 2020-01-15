@@ -33,11 +33,6 @@ cl = peak_clusters[49]
 it = (cl for cl in peak_clusters if len(cl) > 4)
 cl = next(it)
 
-
-
-
-
-
 with open('clust0.json', 'w') as f:
     json.dump(clusters[0], f)
 
