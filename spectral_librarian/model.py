@@ -16,6 +16,7 @@ class SpectralModel:
 
     def fromMZPList(L, cluster_gap = 0.01):
         self = SpectralModel()
+        self.cluster_gap = cluster_gap
 
         spectra = []
         all_confs = []
@@ -52,6 +53,27 @@ class SpectralModel:
         self.peak_clusters = peak_clusters
 
         return self
+
+
+    def plot(self,
+             vlines_kwds={},
+             span_kwds={'alpha':.1, 'color':'orange'},
+             annotate=False,
+             show=True):
+        import matplotlib.pyplot as plt
+        for cl in self.peak_clusters:
+            min_mz = cl[0][0] - self.cluster_gap
+            max_mz = cl[-1][0] + self.cluster_gap
+            plt.axvspan(min_mz, max_mz, **span_kwds)
+            mz, i, c = zip(*cl)        
+            plt.vlines(x=mz, ymin=0, ymax=i, **vlines_kwds)
+            if annotate:
+                for mz, i, c in cl:
+                    plt.text(x=mz, y=i, s=c)
+        if show:
+            plt.show()
+
+
 
 if __name__ == '__main__':
     import json
