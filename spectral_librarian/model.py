@@ -32,8 +32,6 @@ class SpectralModel:
 
         self.spectra = spectra
 
-        self.remove_noise_clusters()
-
         return self
 
     def get_clusters(self):
