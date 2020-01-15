@@ -20,7 +20,9 @@ class SpectralModel:
         spectra = []
         all_confs = []
         for idx, spectrum in enumerate(L):
-            print(spectrum)
+            masses = spectrum[0]
+            probs = spectrum[1]
+            spectrum = list(zip(masses, probs))
             norm_factor = math.fsum(x[1] for x in spectrum)
             spectrum = [(x[0], x[1]/norm_factor) for x in spectrum]
             spectra.append(spectrum)
@@ -34,6 +36,7 @@ class SpectralModel:
 
         clust_start = 0
         prev_conf = all_confs[0]
+
 
         ii = 1
         while ii < len(all_confs):
@@ -51,6 +54,10 @@ class SpectralModel:
         return self
 
 if __name__ == '__main__':
-    example = [0.0, 0.0001, 0.0002, 0.0005, 1.0, 1.1, 1.11, 1.111, 1.11111, 1.111111111, 1.112, 1.12, 1.2, 2.0]
-    example = [[(x, 1.0) for x in example]]
+    import json
+    with open("../data/clust0.json") as f:
+        S = json.load(f)
+    #example = [0.0, 0.0001, 0.0002, 0.0005, 1.0, 1.1, 1.11, 1.111, 1.11111, 1.111111111, 1.112, 1.12, 1.2, 2.0]
+    #example = [[(x, 1.0) for x in example]]
+    example = S
     print(SpectralModel.fromMZPList(example).peak_clusters)
