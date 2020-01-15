@@ -1,5 +1,5 @@
 import math
-
+from copy import deepcopy
 
 # Py2/3 compat
 try:
@@ -112,6 +112,25 @@ class SpectralModel:
                     plt.text(x=mz, y=i, s=c)
         if show:
             plt.show()
+
+    def copy(self):
+        return deepcopy(self)
+
+    def standard_deviations(self):
+        sds = []
+        for s in self.get_clusters():
+            mean_intensity = 0
+            squares_intensity = 0 
+            for _, prob, _ in s:
+                mean_intensity += prob
+                squares_intensity += prob**2
+            mean_intensity /= len(s)
+            squares_intensity /= len(s)
+            sd = math.sqrt(squares_intensity - mean_intensity**2)
+            sds.append(sd)
+        return sds
+
+
 
 
 

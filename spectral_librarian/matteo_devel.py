@@ -23,15 +23,22 @@ clusters = [[MZML[i-1] for i in I] for I in clusters_idx]
 # spec = clusters[0][1]
 # plot_spectrum(spec[0], spec[1])
 
-res = SpectralModel.fromMZPList(clusters[0])
-res.peak_clusters
+ci = SpectralModel.fromMZPList(clusters[0])
+cic = ci.copy()
+cic.remove_noise_clusters(.8)
 
-res.plot()
+ci.plot(show=False)
+cic.plot(span_kwds={'alpha':.2, 'color':'red'})
+
+cic.standard_deviations()
 
 peak_clusters = res.peak_clusters
 cl = peak_clusters[49]
 it = (cl for cl in peak_clusters if len(cl) > 4)
 cl = next(it)
+
+
+
 
 with open('clust0.json', 'w') as f:
     json.dump(clusters[0], f)
