@@ -1,8 +1,6 @@
 from pathlib import Path
 import pymzml
 
-import numpy as np
-
 
 def parse_maracluster_output(path):
     """Parse the output of MaRaCluster.
@@ -23,7 +21,7 @@ def parse_maracluster_output(path):
                 clust = []
             else:
                 clust.append(int(l.split()[1]))
-    return [np.array(c) for c in clust2indices]
+    return [c for c in clust2indices]
 
 
 def get_spectra_array(path2mzml):
@@ -35,5 +33,5 @@ def get_spectra_array(path2mzml):
     Return:
         np.array: an array with spectra.
     """
-    return np.array([(list(s.mz), list(s.i))
-                     for s in pymzml.run.Reader(str(path2mzml))])
+    return [(list(s.mz), list(s.i))
+            for s in pymzml.run.Reader(str(path2mzml))]
