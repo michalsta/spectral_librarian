@@ -41,6 +41,8 @@ class SpectralModel:
             self.compute_clusters()
         return self._peak_clusters
 
+
+
     def compute_clusters(self):
         all_confs = []
 
@@ -103,7 +105,7 @@ class SpectralModel:
              annotate=False,
              show=True):
         import matplotlib.pyplot as plt
-        for cl in self.peak_clusters:
+        for cl in self.get_clusters():
             min_mz = cl[0][0] - self.cluster_gap
             max_mz = cl[-1][0] + self.cluster_gap
             plt.axvspan(min_mz, max_mz, **span_kwds)
@@ -128,3 +130,4 @@ if __name__ == '__main__':
     SM.remove_noise_clusters(0.8)
     from pprint import pprint
     pprint(SM.get_clusters())
+    SM.plot()
