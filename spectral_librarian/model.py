@@ -87,17 +87,15 @@ class SpectralModel:
 
         self.renormalize_spectra()
 
+    def norms(self):
+        return [math.fsum(x[1] for x in spectrum) for spectrum in self.spectra]
+
     def renormalize_spectra(self):
-        new_spectra = []
-
-        for spectrum in self.spectra:
-            correction = math.fsum(x[1] for x in spectrum)
-            n_spectrum = [(x[0], x[1]/correction) for x in spectrum]
-            new_spectra.append(n_spectrum)
-
-        self.spectra = new_spectra
+        self.spectra = [[(x[0], x[1]/norm) for x in spectrum] for spectrum, norm in zip(self.spectra, self.norms())]
         self._peak_clusters = None
 
+    def supports(self):
+        return [len(set(x[2] for x in spectrum)) for spectrum in self.get_clusters()]
 
     def plot(self,
              vlines_kwds={},
@@ -120,6 +118,8 @@ class SpectralModel:
 
 
 if __name__ == '__main__':
+    from collections import Counter
+    from pprint import pprint
     import json
     with open("../data/clust0.json") as f:
         S = json.load(f)
@@ -127,7 +127,9 @@ if __name__ == '__main__':
     #example = [[(x, 1.0) for x in example]]
     example = S
     SM = SpectralModel.fromMZPList(example)
-    SM.remove_noise_clusters(0.8)
-    from pprint import pprint
+    C=Counter(SM.supports())
+    pprint(C)
+    SM.remove_noise_clusters(0.2)
     pprint(SM.get_clusters())
+    pprint(SM.supports())
     SM.plot()
