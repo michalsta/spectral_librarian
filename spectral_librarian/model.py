@@ -1,5 +1,6 @@
 import math
 import random
+from copy import deepcopy
 
 # Py2/3 compat
 try:
@@ -7,6 +8,9 @@ try:
 except NameError:
     pass
 
+
+def exponential_pdf(x, lam=1):
+    return lam*math.exp(-lam*x) if x >= 0 else 0 
 
 # Parameters
 noise_prob = 0.1
@@ -38,6 +42,7 @@ class Cluster:
         return (mz, peak_int)
 
 
+
 class SpectralModel:
     def __init__(self):
         self._peak_clusters = None
@@ -55,8 +60,6 @@ class SpectralModel:
             masses = spectrum[0]
             probs = spectrum[1]
             spectrum = list(zip(masses, probs))
-            norm_factor = math.fsum(x[1] for x in spectrum)
-            spectrum = [(x[0], x[1]/norm_factor) for x in spectrum]
             spectra.append(spectrum)
 
         self.spectra = spectra
@@ -112,7 +115,7 @@ class SpectralModel:
             for mz, prob, sp_id in cluster:
                 self.spectra[sp_id].append((mz, prob))
 
-        self.renormalize_spectra()
+        self._peak_clusters = out_clusters
 
     def norms(self):
         return [math.fsum(x[1] for x in spectrum) for spectrum in self.spectra]
@@ -128,7 +131,22 @@ class SpectralModel:
         return [math.fsum(x[1] for x in cluster)/len(cluster) for cluster in self.get_clusters()]
 
     def cluster_variances(self):
-        return [math.fsum((x[1] - mean)*(x[1]-mean) for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+        return [math.fsum((x[1] - mean)**2 for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+
+    def cluster_stdevs(self):
+        return [math.sqrt(v) for v in self.cluster_variances()]
+
+    def cluster_cvs(self):
+        return [std/mean for std, mean in zip(self.cluster_stdevs(), 
+                                              self.cluster_means())]
+
+    def average_cluster_cv(self):
+        cluster_cvs = self.cluster_cvs()
+        return math.fsum(cluster_cvs)/len(cluster_cvs)
+
+    def avarage_cluster_variance(self):
+        variances = self.cluster_variances()
+        return math.fsum(variances)/len(variances)
 
     def plot(self,
              vlines_kwds={},
@@ -147,6 +165,25 @@ class SpectralModel:
                     plt.text(x=mz, y=i, s=c)
         if show:
             plt.show()
+
+    def copy(self):
+        return deepcopy(self)
+
+    def standard_deviations(self):
+        sds = []
+        for s in self.get_clusters():
+            mean_intensity = 0
+            squares_intensity = 0 
+            for _, prob, _ in s:
+                mean_intensity += prob
+                squares_intensity += prob**2
+            mean_intensity /= len(s)
+            squares_intensity /= len(s)
+            sd = math.sqrt(squares_intensity - mean_intensity**2)
+            sds.append(sd)
+        return sds
+
+
 
 
 
