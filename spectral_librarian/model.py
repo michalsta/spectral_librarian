@@ -11,6 +11,26 @@ except NameError:
 def exponential_pdf(x, lam=1):
     return lam*math.exp(-lam*x) if x >= 0 else 0 
 
+# Parameters
+noise_prob = 0.1
+stair_width = 0.05
+
+class Cluster:
+    def __init__(self, confs, no_spectra, clust_width): # confs = list of tuples, (mz, prob, spectrum_id)
+        self.confs = sorted(confs)
+        self.no_spectra = no_spectra
+        self.clust_width = clust_width
+        self.support = set(x[2] for x in confs)
+        self.no_zeros = no_spectra - len(self.support)
+    def mz_range(self):
+        return (self.confs[0][0]-self.clust_width, self.confs[-1][0]+self.clust_width)
+    def pdf(self, point):
+        matching_pts = 0
+        for _, prob, _ in self.confs:
+            if abs(point - prob) < stair_width:
+                matching_pts += 1
+        return noise_prob * noise_function + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+
 
 class SpectralModel:
     def __init__(self):
