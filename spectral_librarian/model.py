@@ -189,6 +189,9 @@ class SpectralModel:
         return sds
 
 
+    def mode_spectrum(self):
+        return [(x[0], x[1]) for x in self.get_clusters() if x is not None]
+
 
 
 
