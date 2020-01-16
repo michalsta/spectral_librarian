@@ -1,4 +1,5 @@
 import math
+import random
 from copy import deepcopy
 
 # Py2/3 compat
@@ -58,7 +59,22 @@ class Cluster:
         for _, prob, _ in self.confs:
             if abs(point - prob) < stair_width:
                 matching_pts += 1
-        return noise_prob * noise_function + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+        return noise_prob * noise_function(point) + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+
+    def sample_peak(self, include_noise = False):
+        mz = random.uniform(self.confs[0][0], self.confs[-1][0])
+        isnoise = include_noise and random.random() < noise_prob
+        if isnoise:
+            return (mz, noise_sample())
+        peak = random.choice(self.confs)
+        peak_int = random.uniform(-stair_width, stair_width) + peak[1]
+        return (mz, peak_int)
+
+    def get_mode(self):
+        if self.no_zeros > len(self.support):
+            return None
+        return max(self.confs, key = lambda conf: self.pdf(conf[1]))
+
 
     def __iter__(self):
         for mz, intensity, spectrum_no in self.confs:
