@@ -42,6 +42,8 @@ class Cluster:
         return (mz, peak_int)
 
     def get_mode(self):
+        if self.no_zeros > len(self.support):
+            return None
         return max(self.confs, key = lambda conf: self.pdf(conf[1]))
 
 
