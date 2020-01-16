@@ -41,6 +41,9 @@ class Cluster:
         peak_int = random.uniform(-stair_width, stair_width) + peak[1]
         return (mz, peak_int)
 
+    def get_mode(self):
+        return max(self.confs, key = lambda conf: self.pdf(conf[1]))
+
 
 
 class SpectralModel:
