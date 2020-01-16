@@ -8,6 +8,9 @@ except NameError:
     pass
 
 
+def exponential_pdf(x, lam=1):
+    return lam*math.exp(-lam*x) if x >= 0 else 0 
+
 
 class SpectralModel:
     def __init__(self):
@@ -81,7 +84,7 @@ class SpectralModel:
             for mz, prob, sp_id in cluster:
                 self.spectra[sp_id].append((mz, prob))
 
-        self.renormalize_spectra()
+        self._peak_clusters = out_clusters
 
     def norms(self):
         return [math.fsum(x[1] for x in spectrum) for spectrum in self.spectra]
@@ -97,7 +100,7 @@ class SpectralModel:
         return [math.fsum(x[1] for x in cluster)/len(cluster) for cluster in self.get_clusters()]
 
     def cluster_variances(self):
-        return [math.fsum((x[1] - mean)*(x[1]-mean) for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+        return [math.fsum((x[1] - mean)**2 for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
 
     def cluster_stdevs(self):
         return [math.sqrt(v) for v in self.cluster_variances()]

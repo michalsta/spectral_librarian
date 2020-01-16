@@ -11,13 +11,12 @@ from spectral_librarian.get_data import parse_maracluster_output, get_spectra_ar
 from spectral_librarian.plot import plot_spectrum, side_plot_spectra
 from spectral_librarian.model import SpectralModel
 
-datafolder = Path("~/Projects/eubic2020/spectra_clustering/data/eubic-project").expanduser()
+datafolder = Path("../data/eubic-project").expanduser()
 
 mzml_file = list((datafolder).glob('*.mzML'))[0]
 MZML = get_spectra_array(mzml_file)
 maracluter_outcome_path = list(datafolder.glob('*.tsv'))[0]
 clusters_idx = parse_maracluster_output(maracluter_outcome_path)
-
 
 clusters = [[MZML[i-1] for i in I] for I in clusters_idx]
 # spec = clusters[0][1]
@@ -30,10 +29,12 @@ ci.average_cluster_cv()
 
 
 cic = ci.copy()
-cic.remove_noise_clusters(.8)
+cic.remove_noise_clusters(.9)
 cic.average_cluster_cv()
 cic.renormalize_spectra()
 cic.average_cluster_cv()
+
+
 
 cic.average_()
 
