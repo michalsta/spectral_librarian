@@ -1,5 +1,5 @@
 import math
-
+import random
 
 # Py2/3 compat
 try:
@@ -26,7 +26,17 @@ class Cluster:
         for _, prob, _ in self.confs:
             if abs(point - prob) < stair_width:
                 matching_pts += 1
-        return noise_prob * noise_function + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+        return noise_prob * noise_function(point) + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+
+    def sample_peak(self):
+        mz = random.uniform(self.confs[0][0], self.confs[-1][0])
+        isnoise = random.random() < noise_prob
+        if isnoise:
+            return (mz, noise_sample())
+        peak = random.choice(self.confs)
+        peak_int = random.uniform(-stair_width, stair_width) + peak[1]
+        return (mz, peak_int)
+
 
 class SpectralModel:
     def __init__(self):
