@@ -27,7 +27,6 @@ ci.average_cluster_cv()
 ci.renormalize_spectra()
 ci.average_cluster_cv()
 
-
 cic = ci.copy()
 cic.remove_noise_clusters(.9)
 cic.average_cluster_cv()

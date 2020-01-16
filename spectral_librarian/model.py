@@ -15,21 +15,54 @@ def exponential_pdf(x, lam=1):
 noise_prob = 0.1
 stair_width = 0.05
 
+
 class Cluster:
-    def __init__(self, confs, no_spectra, clust_width): # confs = list of tuples, (mz, prob, spectrum_id)
+    """A group of peaks from different spectra in a collection that concentrate in a small region in the m/z half-line."""
+    def __init__(self, confs, no_spectra, clust_width):
+        """ 
+        Arguments:
+            confs (list): Tuples (mz, prob, spectrum_id).
+            no_spectra (int): Overall number of spectra in the collection of spectra.
+            clust_width (float): the width of the cluster.
+        """
         self.confs = sorted(confs)
         self.no_spectra = no_spectra
         self.clust_width = clust_width
         self.support = set(x[2] for x in confs)
         self.no_zeros = no_spectra - len(self.support)
+
     def mz_range(self):
-        return (self.confs[0][0]-self.clust_width, self.confs[-1][0]+self.clust_width)
+        return (self.confs[0][0]  - self.clust_width,
+                self.confs[-1][0] + self.clust_width)
+
+    def mean(self):
+        """Get mean intensity (normalized)."""
+        return math.fsum(x[1] for x in self.confs)/len(self.confs)
+
+    def variance(self):
+        """Get variance of intensity (normalized)."""
+        mean = self.mean()
+        return math.fsum((x[1]-mean)**2 for x in self.confs)/len(self.confs)
+
+    def stdev(self):
+        """Get standard deviation of intensity (normalized)."""
+        return math.sqrt(self.variance())
+
+    def cv(self):
+        """Get coefficient of variation of intensity (normalized)."""
+        return self.stdev()/self.mean()        
+
     def pdf(self, point):
+        """Get the probability density of intensity."""
         matching_pts = 0
         for _, prob, _ in self.confs:
             if abs(point - prob) < stair_width:
                 matching_pts += 1
         return noise_prob * noise_function + (1.0 - noise_prob) * (matching_pts / self.no_spectra)
+
+    def __iter__(self):
+        for mz, intensity, spectrum_no in self.confs:
+            yield mz, intensity, spectrum_no
 
 
 class SpectralModel:
@@ -81,12 +114,18 @@ class SpectralModel:
             if curr_conf[0] - self.cluster_gap < prev_conf[0]:
                 pass
             else:
-                peak_clusters.append(all_confs[clust_start:ii])
+                peak_clusters.append(Cluster(confs=all_confs[clust_start:ii],
+                                             no_spectra=self.size, 
+                                             clust_width=self.cluster_gap))
+                # peak_clusters.append(all_confs[clust_start:ii])
                 clust_start = ii
             prev_conf = curr_conf
             ii += 1
 
         self._peak_clusters = peak_clusters
+        
+
+
 
     def remove_noise_clusters(self, threshold = 0.2):
         out_clusters = []
@@ -117,17 +156,16 @@ class SpectralModel:
         return [len(set(x[2] for x in spectrum)) for spectrum in self.get_clusters()]
 
     def cluster_means(self):
-        return [math.fsum(x[1] for x in cluster)/len(cluster) for cluster in self.get_clusters()]
+        return [cl.mean() for cl in self.get_clusters()]
 
     def cluster_variances(self):
-        return [math.fsum((x[1] - mean)**2 for x in cluster)/len(cluster) for cluster, mean in zip(self.get_clusters(), self.cluster_means())]
+        return [cl.variance() for cl in self.get_clusters()]
 
     def cluster_stdevs(self):
-        return [math.sqrt(v) for v in self.cluster_variances()]
+        return [cl.stdev() for cl in self.get_clusters()]
 
     def cluster_cvs(self):
-        return [std/mean for std, mean in zip(self.cluster_stdevs(), 
-                                              self.cluster_means())]
+        return [cl.cv() for cl in self.get_clusters()] 
 
     def average_cluster_cv(self):
         cluster_cvs = self.cluster_cvs()
