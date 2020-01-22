@@ -1,37 +1,71 @@
 from pathlib import Path
-import pymzml
+from collections import defaultdict, Counter
+import spectrum_utils.plot as sup
+import matplotlib.pyplot as plt
+from itertools import islice
+import numpy as np
+import pandas as pd
+
+# Wouts (most likely) scripts
+from ms_io import read_spectra, read_clusters, write_spectra, read_psms
+import ms_io
+
+# input
+dataFolder = Path("/home/matteo/Projects/eubic2020/spectra_clustering/data/eubic-project")
+mzmlFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mzML"
+mgfFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mgf"
+maraclustersFile = dataFolder/"MaRaCluster.clusters_p30.tsv"
 
 
-def parse_maracluster_output(path):
-    """Parse the output of MaRaCluster.
+def get_cluster_spectra(spectra):
+    clusters = defaultdict(list)
+    for spectrum_key, spectrum in spectra.items():
+        clusters[spectrum.cluster].append(spectrum_key)
+    for cluster_key, cluster_members in clusters.items():
+        yield cluster_key, {spectrum_key: spectra[spectrum_key]
+                            for spectrum_key in cluster_members}
+
+class Collection(list):
+    """A simple extension of list to store one cluster of spectra."""
+    def precursor_charges(self):
+        return np.array([s.precursor_charge for s in self])
+
+    def precursor_mzs(self):
+        return np.array([s.precursor_mz for s in self])
+
+def list_collections(mgfFile, maraclustersFile):
+    """Get a list of collections of spectra clustered by MaRaCluster.
 
     Arguments:
-        path (str): Path to the data.
-    
+        mgfFile (str,Path): path to mgf file with spectra.
+        maraclustersFile (str,Path): path to the MaRaCluster clusters.
+
     Returns:
-        A list of numpy arrays, each with indices of clustered spectra.
+        list of Collection objects.
     """
-    path = Path(path)
-    clust2indices = []
-    clust = []
-    with path.open('r') as f:
-        for l in f:
-            if l == '\n':
-                clust2indices.append(clust)
-                clust = []
-            else:
-                clust.append(int(l.split()[1]))
-    return [c for c in clust2indices]
+    spectra = {f'{s.filename}:scan:{s.scan}': s
+               for s in ms_io.read_spectra(str(mgfFile))}
+    spec2clust = read_clusters(str(maraclustersFile), 'maracluster')
+    spectra_collections = defaultdict(Collection)
+    for sp, cl in spec2clust.items():
+        spectra_collections[cl].append(spectra[sp])
+    return list(spectra_collections.values())# list of Collections of spectra
 
 
-def get_spectra_array(path2mzml):
-    """Get array of spectra.
+if __name__ == '__main__':
+    print('Run it with something higher than Python3.5')
+    spectra_collections = list_collections(mgfFile, maraclustersFile)
+
+    # all collections have the same charge!
+    collection_with_different_precursor_charges = [sp for sp in spectra_collections if len(Counter(sp.precursor_charges())) > 1] 
+    print(collection_with_different_precursor_charges)
     
-    Arguments:
-        path2mzml (str): Path to mzml file.
-
-    Return:
-        np.array: an array with spectra.
-    """
-    return [(list(s.mz), list(s.i))
-            for s in pymzml.run.Reader(str(path2mzml))]
+    clusters_stats = pd.DataFrame({'size': len(sp),
+                                   'prec_mz_mean': sp.precursor_mzs().mean(),
+                                   'prec_mz_std': sp.precursor_mzs().std()
+                                   } for sp in spectra_collections)
+    plt.scatter(clusters_stats.prec_mz_mean,
+                clusters_stats.prec_mz_std)
+    plt.xlabel('Mean of the cluster precursor m/z')
+    plt.ylabel('Stdev of cluster precursor m/z')
+    plt.show()

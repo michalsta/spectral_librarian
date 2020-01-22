@@ -15,6 +15,8 @@ datafolder = Path("../data/eubic-project").expanduser()
 
 mzml_file = list((datafolder).glob('*.mzML'))[0]
 MZML = get_spectra_array(mzml_file)
+MZML[0]
+
 maracluter_outcome_path = list(datafolder.glob('*.tsv'))[0]
 clusters_idx = parse_maracluster_output(maracluter_outcome_path)
 
