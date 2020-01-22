@@ -4,17 +4,10 @@ import spectrum_utils.plot as sup
 import matplotlib.pyplot as plt
 from itertools import islice
 import numpy as np
-import pandas as pd
 
 # Wouts (most likely) scripts
 from ms_io import read_spectra, read_clusters, write_spectra, read_psms
 import ms_io
-
-# input
-dataFolder = Path("/home/matteo/Projects/eubic2020/spectra_clustering/data/eubic-project")
-mzmlFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mzML"
-mgfFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mgf"
-maraclustersFile = dataFolder/"MaRaCluster.clusters_p30.tsv"
 
 
 class Collection(list):
@@ -45,6 +38,14 @@ def list_collections(mgfFile, maraclustersFile):
 
 
 if __name__ == '__main__':
+    import pandas as pd
+
+    # input
+    dataFolder = Path("/home/matteo/Projects/eubic2020/spectra_clustering/data/eubic-project")
+    mzmlFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mzML"
+    mgfFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mgf"
+    maraclustersFile = dataFolder/"MaRaCluster.clusters_p30.tsv"
+
     print('Run it with something higher than Python3.5')
     spectra_collections = list_collections(mgfFile, maraclustersFile)
 
