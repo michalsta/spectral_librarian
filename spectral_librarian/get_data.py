@@ -17,14 +17,6 @@ mgfFile = dataFolder/"01650b_BA5-TUM_first_pool_75_01_01-3xHCD-1h-R2.mgf"
 maraclustersFile = dataFolder/"MaRaCluster.clusters_p30.tsv"
 
 
-def get_cluster_spectra(spectra):
-    clusters = defaultdict(list)
-    for spectrum_key, spectrum in spectra.items():
-        clusters[spectrum.cluster].append(spectrum_key)
-    for cluster_key, cluster_members in clusters.items():
-        yield cluster_key, {spectrum_key: spectra[spectrum_key]
-                            for spectrum_key in cluster_members}
-
 class Collection(list):
     """A simple extension of list to store one cluster of spectra."""
     def precursor_charges(self):
