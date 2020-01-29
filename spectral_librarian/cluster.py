@@ -25,6 +25,19 @@ def peak_distance_clusters(peaks, distance=0.1):
     yield peak_cluster
 
 
+def ppm_dist_clusters(peaks, ppm=10.0):
+    prev_peak = next(peaks)
+    peak_cluster = PeakCluster()
+    peak_cluster.append(prev_peak)
+    for peak in peaks:
+        if 10e6*abs(prev_peak.mz-peak.mz)/(prev_peak.mz+peak.mz) > ppm:
+            yield peak_cluster
+            peak_cluster = PeakCluster()
+        peak_cluster.append(peak)
+        prev_peak = peak
+    yield peak_cluster
+
+
 def clusters_close(c0, c1, big_mz=1.2):
     """Check, if two clusters are closer than a big jump in m/z."""
     return abs(c1[0].mz - c0[-1].mz) < big_mz 

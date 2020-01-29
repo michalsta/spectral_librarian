@@ -20,20 +20,15 @@ class PeakCluster(list):
         if show:
             plt.show()
 
-    def eliminate_less_intense_replicate_peaks(self):
-        good_peaks = OrderedDict()
-        for mz,i,n in self:
-            if n not in good_peaks:
-                good_peaks[n] = (mz,i)
+    def split(self, mz_split):
+        left = PeakCluster()
+        right = PeakCluster()
+        for p in self:
+            if p.mz <= mz_split:
+                left.append(p)
             else:
-                mz_,i_ = good_peaks[n]
-                if i > i_:
-                    good_peaks[n] = (mz,i)
-        clean_peak_cluster = PeakCluster()
-        for n, (mz,i) in good_peaks.items():
-            clean_peak_cluster.append((mz,i,n))
-        return clean_peak_cluster
+                right.append(p)
+        return left, right
 
     def __repr__(self):
-        g = super().__repr__()
-        return f"PeakCluster({g[1:-1]})"
+        return f"PeakCluster({len(self)})"
