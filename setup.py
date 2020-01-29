@@ -7,5 +7,5 @@ setup(name='spectral_librarian',
       license='MIT',
       packages=['spectral_librarian'],
       package_data={'mypkg': ['data/cluster0.json']},
-      install_requires = ["IsoSpecPy"],
+      install_requires = ["IsoSpecPy >= 2.1.0.dev1"],
       zip_safe=False)
